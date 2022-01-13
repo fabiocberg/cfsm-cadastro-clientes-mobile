@@ -9,6 +9,9 @@ import Input from "../components/Input";
 import { Right } from "../components/Right";
 import Button from "../components/Button";
 import { CommonActions, useNavigation } from "@react-navigation/native";
+import { useForm } from "react-hook-form";
+import { useEffect, useState } from "react";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const Container = styled.View`
   flex: 1;
@@ -17,10 +20,25 @@ const Container = styled.View`
   background-color: white;
 `;
 
+const ErrorText = styled.Text`
+  color: #ff3333;
+  text-align: center;
+  margin-bottom: 8px;
+`;
+
 export default function SignIn() {
   const navigation = useNavigation();
+  const { register, setValue, handleSubmit } = useForm();
+  const [errorMessage, setErrorMessage] = useState("");
 
-  const register = () => {
+  useEffect(() => {
+    register("email");
+    register("password");
+    setValue("email", "");
+    setValue("password", "");
+  }, [register]);
+
+  const signUp = () => {
     navigation.dispatch(
       CommonActions.navigate({
         name: "SignUp",
@@ -28,12 +46,29 @@ export default function SignIn() {
     );
   };
 
-  const signIn = () => {
-    navigation.dispatch(
-      CommonActions.navigate({
-        name: "Home",
+  const signIn = (data: any) => {
+    setErrorMessage("");
+    fetch("http://192.168.0.9:3001/v1/sign-in", {
+      headers: {
+        "Content-Type": "application/json",
+      },
+      method: "POST",
+      body: JSON.stringify(data),
+    })
+      .then(async (response) => {
+        const json = await response.json();
+        if (response.ok) {
+          await AsyncStorage.setItem("token", json.token);
+          navigation.dispatch(
+            CommonActions.navigate({
+              name: "Home",
+            })
+          );
+        } else {
+          setErrorMessage(json.message);
+        }
       })
-    );
+      .catch((e) => setErrorMessage(e));
   };
 
   return (
@@ -49,20 +84,31 @@ export default function SignIn() {
           mb={16}
           iconName="alternate-email"
           placeholder="Endereço de email"
+          name="email"
+          setValue={setValue}
         />
-        <Input mb={16} iconName="lock" placeholder="Senha" />
+        <Input
+          mb={16}
+          iconName="lock"
+          placeholder="Senha"
+          name="password"
+          setValue={setValue}
+          secureTextEntry
+        />
         <Right mb={16}>
           <TouchableOpacity>
             <Text style={{ color: "#718096" }}>esqueceu a senha?</Text>
           </TouchableOpacity>
         </Right>
-        <Button mb={16} onPress={signIn}>
+        {/* Mensagem de erro */}
+        {errorMessage.length > 0 ? <ErrorText>{errorMessage}</ErrorText> : null}
+        <Button mb={16} onPress={handleSubmit(signIn)}>
           Login
         </Button>
         <Center mb={16}>
           <Text>Ainda não possui cadastro?</Text>
         </Center>
-        <Button link onPress={register}>
+        <Button link onPress={signUp}>
           Cadastrar-se
         </Button>
       </BoxView>

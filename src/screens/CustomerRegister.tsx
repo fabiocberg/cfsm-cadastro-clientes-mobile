@@ -57,7 +57,9 @@ export default function CustomerRegister() {
         />
         {/* Botões */}
         <Button mb={16}>Salvar</Button>
-        <Button link>Voltar</Button>
+        <Button link onPress={() => navigation.goBack()}>
+          Voltar
+        </Button>
       </BoxView>
     </Container>
   );

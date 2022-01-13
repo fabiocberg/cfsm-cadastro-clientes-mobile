@@ -74,6 +74,8 @@ const fabAlign = 16;
 const styles = StyleSheet.create({
   fab: {
     position: "absolute",
+    zIndex: 100,
+    elevation: 20,
     right: fabAlign,
     bottom: fabAlign,
   },

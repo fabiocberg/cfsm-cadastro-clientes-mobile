@@ -9,6 +9,8 @@ import Input from "../components/Input";
 import { Right } from "../components/Right";
 import Button from "../components/Button";
 import { useNavigation } from "@react-navigation/native";
+import { useForm } from "react-hook-form";
+import { useEffect, useState } from "react";
 
 const Container = styled.View`
   flex: 1;
@@ -17,8 +19,65 @@ const Container = styled.View`
   background-color: white;
 `;
 
+const ErrorText = styled.Text`
+  color: #ff3333;
+  text-align: center;
+  margin-bottom: 8px;
+`;
+
 export default function SignUp() {
   const navigation = useNavigation();
+  const { register, setValue, handleSubmit } = useForm();
+  const [errorMessage, setErrorMessage] = useState("");
+
+  useEffect(() => {
+    register("name");
+    register("email");
+    register("password");
+    register("passwordConfirm");
+    setValue("name", "");
+    setValue("email", "");
+    setValue("password", "");
+    setValue("passwordConfirm", "");
+  }, [register]);
+
+  const signUp = (data: any) => {
+    setErrorMessage("");
+    if (data.name.trim().length === 0) {
+      setErrorMessage("Informe o seu nome.");
+      return;
+    }
+    if (data.email.trim().length === 0) {
+      setErrorMessage("Informe o seu email.");
+      return;
+    }
+    if (data.password) {
+      if (data.password !== data.passwordConfirm) {
+        setErrorMessage("As senhas não são iguais.");
+        return;
+      }
+    } else {
+      setErrorMessage("Informe uma senha.");
+      return;
+    }
+    delete data["passwordConfirm"];
+    fetch("http://192.168.0.9:3001/v1/sign-up", {
+      headers: {
+        "Content-Type": "application/json",
+      },
+      method: "POST",
+      body: JSON.stringify(data),
+    })
+      .then(async (response) => {
+        const json = await response.json();
+        if (response.ok) {
+          navigation.goBack();
+        } else {
+          setErrorMessage(json.message);
+        }
+      })
+      .catch((e) => setErrorMessage(e));
+  };
 
   const cancel = () => {
     navigation.goBack();
@@ -38,6 +97,8 @@ export default function SignUp() {
           iconName="person"
           placeholder="Nome"
           autoCapitalize="words"
+          name="name"
+          setValue={setValue}
         />
         <Input
           mb={16}
@@ -45,16 +106,31 @@ export default function SignUp() {
           placeholder="Endereço de email"
           keyboardType="email-address"
           autoCapitalize="none"
+          name="email"
+          setValue={setValue}
         />
-        <Input mb={16} iconName="lock" placeholder="Senha" secureTextEntry />
+        <Input
+          mb={16}
+          iconName="lock"
+          placeholder="Senha"
+          secureTextEntry
+          name="password"
+          setValue={setValue}
+        />
         <Input
           mb={16}
           iconName="lock"
           placeholder="Confirmar senha"
           secureTextEntry
+          name="passwordConfirm"
+          setValue={setValue}
         />
+        {/* Mensagem de erro */}
+        {errorMessage.length > 0 ? <ErrorText>{errorMessage}</ErrorText> : null}
         {/* Botões */}
-        <Button mb={16}>Cadastrar</Button>
+        <Button mb={16} onPress={handleSubmit(signUp)}>
+          Cadastrar
+        </Button>
         <Button link onPress={cancel}>
           Voltar
         </Button>

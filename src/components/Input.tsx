@@ -1,6 +1,7 @@
 import styled from "styled-components/native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { KeyboardTypeOptions, TextInput } from "react-native";
+import { FieldValues, UseFormSetValue } from "react-hook-form";
 
 const Container = styled.View`
   border: 1px solid #e2e8f0;
@@ -22,6 +23,8 @@ export interface InputProps {
   keyboardType?: KeyboardTypeOptions | undefined;
   autoCapitalize?: "none" | "sentences" | "words" | "characters" | undefined;
   secureTextEntry?: boolean | undefined;
+  name: string;
+  setValue: UseFormSetValue<FieldValues>;
 }
 
 export default function Input(props: InputProps) {
@@ -34,6 +37,7 @@ export default function Input(props: InputProps) {
         keyboardType={props.keyboardType}
         autoCapitalize={props.autoCapitalize}
         secureTextEntry={props.secureTextEntry}
+        onChangeText={(text) => props.setValue(props.name, text)}
       />
     </Container>
   );
