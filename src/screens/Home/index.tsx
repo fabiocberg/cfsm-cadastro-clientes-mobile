@@ -7,6 +7,9 @@ import CustomerList from "./CustomerList";
 import fabImage from "../../../assets/images/fab.png";
 import { Image, StyleSheet, TouchableOpacity } from "react-native";
 import { CommonActions, useNavigation } from "@react-navigation/native";
+import getEnvVars from "../../../environments";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useEffect, useState } from "react";
 
 const Container = styled.View`
   background-color: #e2e8f0;
@@ -26,23 +29,48 @@ const Fab = styled.Image`
   bottom: ${-fabSize}px;
 `;
 
-const customers: Customer[] = [
-  { id: 1, name: "Cliente 1", email: "", phone: "", userId: 0, pictureUrl: "" },
-  { id: 2, name: "Cliente 2", email: "", phone: "", userId: 0, pictureUrl: "" },
-  { id: 3, name: "Cliente 3", email: "", phone: "", userId: 0, pictureUrl: "" },
-  { id: 4, name: "Cliente 4", email: "", phone: "", userId: 0, pictureUrl: "" },
-];
-
 export default function Home() {
   const navigation = useNavigation();
+  const [customers, setCustomers] = useState<Customer[]>([]);
   const logout = () => {
     navigation.goBack();
   };
 
-  const registerClient = () => {
+  const updateList = async () => {
+    const token = await AsyncStorage.getItem("token");
+    fetch(`${getEnvVars().apiUrl}/v1/customers`, {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      method: "GET",
+    })
+      .then(async (response) => {
+        const json = await response.json();
+        if (response.ok) {
+          setCustomers(json.customers || []);
+        } else {
+          console.log("Error", json.message);
+        }
+      })
+      .catch((e) => console.log(e));
+  };
+
+  useEffect(() => {
+    updateList();
+    const focusListener = navigation.addListener("focus", () => {
+      updateList();
+    });
+    return focusListener;
+  }, []);
+
+  const registerClient = (customer?: Customer) => {
     navigation.dispatch(
       CommonActions.navigate({
         name: "CustomerRegister",
+        params: {
+          customer,
+        },
       })
     );
   };
@@ -61,8 +89,11 @@ export default function Home() {
         <Input iconName="search" placeholder="Buscar" />
       </BoxView>
       {/* Lista de clientes */}
-      <CustomerList customers={customers} />
-      <TouchableOpacity style={styles.fab} onPress={registerClient}>
+      <CustomerList
+        customers={customers}
+        onEditing={(customer) => registerClient(customer)}
+      />
+      <TouchableOpacity style={styles.fab} onPress={() => registerClient()}>
         <Image source={fabImage} style={styles.fabImage} />
       </TouchableOpacity>
     </Container>

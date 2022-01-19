@@ -11,6 +11,7 @@ import Button from "../components/Button";
 import { useNavigation } from "@react-navigation/native";
 import { useForm } from "react-hook-form";
 import { useEffect, useState } from "react";
+import getEnvVars from "../../environments";
 
 const Container = styled.View`
   flex: 1;
@@ -61,7 +62,7 @@ export default function SignUp() {
       return;
     }
     delete data["passwordConfirm"];
-    fetch("http://192.168.0.9:3001/v1/sign-up", {
+    fetch(`${getEnvVars().apiUrl}/v1/sign-up`, {
       headers: {
         "Content-Type": "application/json",
       },

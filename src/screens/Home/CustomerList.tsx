@@ -1,5 +1,5 @@
 import { MaterialIcons } from "@expo/vector-icons";
-import { Text, View } from "react-native";
+import { Text, TouchableOpacity, View } from "react-native";
 import styled from "styled-components/native";
 import { BoxView } from "../../components/BoxView";
 import { Customer } from "../../models/customer-model";
@@ -10,7 +10,7 @@ const Line = styled.View`
   margin-bottom: 8px;
 `;
 
-const CustomerItem = styled.View`
+const CustomerItem = styled.TouchableOpacity`
   flex-direction: row;
   align-items: center;
   margin-bottom: 8px;
@@ -18,9 +18,16 @@ const CustomerItem = styled.View`
 
 interface CustomerListProps {
   customers: Customer[];
+  onEditing?: (customer: Customer) => void;
 }
 
 export default function CustomerList(props: CustomerListProps) {
+  const handleEditing = (customer: Customer) => {
+    if (props.onEditing) {
+      props.onEditing(customer);
+    }
+  };
+
   return (
     <BoxView
       marginHorizontal={16}
@@ -32,7 +39,7 @@ export default function CustomerList(props: CustomerListProps) {
       {props.customers ? (
         props.customers.map((customer) => (
           <View key={customer.id}>
-            <CustomerItem>
+            <CustomerItem onPress={() => handleEditing(customer)}>
               <MaterialIcons name="account-circle" size={50} color="#38A169" />
               <Text style={{ marginLeft: 8 }}>{customer.name}</Text>
             </CustomerItem>

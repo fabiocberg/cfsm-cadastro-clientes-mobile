@@ -12,6 +12,7 @@ import { CommonActions, useNavigation } from "@react-navigation/native";
 import { useForm } from "react-hook-form";
 import { useEffect, useState } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import getEnvVars from "../../environments";
 
 const Container = styled.View`
   flex: 1;
@@ -48,7 +49,7 @@ export default function SignIn() {
 
   const signIn = (data: any) => {
     setErrorMessage("");
-    fetch("http://192.168.0.9:3001/v1/sign-in", {
+    fetch(`${getEnvVars().apiUrl}/v1/sign-in`, {
       headers: {
         "Content-Type": "application/json",
       },
