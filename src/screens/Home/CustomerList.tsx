@@ -2,6 +2,7 @@ import { MaterialIcons } from "@expo/vector-icons";
 import { Text, TouchableOpacity, View } from "react-native";
 import styled from "styled-components/native";
 import { BoxView } from "../../components/BoxView";
+import CustomerPicture from "../../components/CustomerPicture";
 import { Customer } from "../../models/customer-model";
 
 const Line = styled.View`
@@ -40,7 +41,7 @@ export default function CustomerList(props: CustomerListProps) {
         props.customers.map((customer) => (
           <View key={customer.id}>
             <CustomerItem onPress={() => handleEditing(customer)}>
-              <MaterialIcons name="account-circle" size={50} color="#38A169" />
+              <CustomerPicture customer={customer} />
               <Text style={{ marginLeft: 8 }}>{customer.name}</Text>
             </CustomerItem>
             <Line />

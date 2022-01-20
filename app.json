@@ -25,6 +25,14 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "plugins": [
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "O app precisa acessar a sua galeria de fotos para que você possa utilizar nas imagens dos clientes."
+        }
+      ]
+    ]
   }
 }

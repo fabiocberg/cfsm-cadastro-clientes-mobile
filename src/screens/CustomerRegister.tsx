@@ -11,9 +11,11 @@ import styled from "styled-components/native";
 import getEnvVars from "../../environments";
 import { BoxView } from "../components/BoxView";
 import Button from "../components/Button";
+import CustomerPicture from "../components/CustomerPicture";
 import Header from "../components/Header";
 import Input from "../components/Input";
 import { Customer } from "../models/customer-model";
+import * as ImagePicker from "expo-image-picker";
 
 const Container = styled.View`
   background-color: #e2e8f0;
@@ -29,11 +31,9 @@ export default function CustomerRegister() {
   const [editingCustomer, setEditingCustomer] = useState<Customer | null>(
     customer
   );
-  const [file, setFile] = useState();
+  const [file, setFile] = useState<string>();
 
   const { register, setValue, handleSubmit } = useForm();
-
-  console.log(editingCustomer);
 
   useEffect(() => {
     register("name");
@@ -48,8 +48,49 @@ export default function CustomerRegister() {
     navigation.dispatch(StackActions.popToTop());
   };
 
-  const savePicture = (id: number) => {
-    navigation.goBack();
+  const onSelectPicture = async () => {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+    });
+
+    console.log(result);
+
+    if (!result.cancelled) {
+      setFile(result.uri);
+    }
+  };
+
+  const savePicture = async (id: number) => {
+    if (!file) {
+      navigation.goBack();
+      return;
+    }
+    const filename = file.split("/").pop()!;
+    const match = /\.(\w+)$/.exec(filename);
+    const type = match ? `image/${match[1]}` : "image";
+
+    const token = await AsyncStorage.getItem("token");
+
+    const formData = new FormData();
+    // @ts-ignore
+    formData.append("file", { uri: file, name: filename, type });
+    formData.append("id", id.toString());
+    fetch(`${getEnvVars().apiUrl}/v1/customers/profile-picture`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      method: "POST",
+      body: formData,
+    })
+      .then(async (response) => {
+        const json = await response.json();
+        if (response.ok) {
+          navigation.goBack();
+        } else {
+          console.log(json);
+        }
+      })
+      .catch((e) => console.log(e));
   };
 
   const save = async (data: any) => {
@@ -88,8 +129,6 @@ export default function CustomerRegister() {
       .catch((e) => console.log(e));
   };
 
-  console.log("editingCustomer", editingCustomer);
-
   return (
     <Container>
       <Header onLogout={logout} />
@@ -100,11 +139,11 @@ export default function CustomerRegister() {
         shadow
         borderRadius={8}
       >
-        <MaterialIcons
-          style={{ marginBottom: 8 }}
-          name="account-circle"
-          size={50}
-          color="#38A169"
+        <CustomerPicture
+          customer={editingCustomer}
+          pictureUri={file}
+          onSelectPicture={onSelectPicture}
+          mb={8}
         />
         <Input
           mb={16}
